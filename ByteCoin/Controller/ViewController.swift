@@ -10,9 +10,13 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    let coinManager = CoinManager()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        
+        coinManager.performRequest(with: "https://rest.coinapi.io/v1/exchangerate/BTC/USD?apikey=DF6D2221-ED9F-4172-A5C9-107844BEF24F")
     }
 
 
