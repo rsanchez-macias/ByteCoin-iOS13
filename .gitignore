@@ -1,1 +1,4 @@
-xcuserdata
+# XCode
+*.xcuserstate
+project.xcworkspace/
+xcuserdata/
