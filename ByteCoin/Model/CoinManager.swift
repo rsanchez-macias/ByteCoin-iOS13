@@ -8,6 +8,11 @@
 
 import Foundation
 
+protocol CoinManagerDelegate {
+    func updateUI(_ coinManager: CoinManager, with response: CoinResponse)
+    func didReceiveError(_ coinManager: CoinManager, error: Error)
+}
+
 struct CoinManager {
     
     // API Constants
@@ -17,6 +22,7 @@ struct CoinManager {
     // Picker Options
     let currencyArray = ["AUD", "BRL","CAD","CNY","EUR","GBP","HKD","IDR","ILS","INR","JPY","MXN","NOK","NZD","PLN","RON","RUB","SEK","SGD","USD","ZAR"]
     
+    var delegate: CoinManagerDelegate?
     
     func performRequest(with urlString: String) {
         
@@ -25,11 +31,15 @@ struct CoinManager {
             
             let task = session.dataTask(with: url) { data, response, error in
                 if error != nil {
-                    print("error")
+                    self.delegate?.didReceiveError(self, error: error!)
                 }
                 
                 if let safeData = data {
-                    self.parseJSON(json: safeData)
+                    let response = self.parseJSON(json: safeData)
+                    
+                    if let safeResponse = response {
+                        self.delegate?.updateUI(self, with: safeResponse)
+                    }
                 }
             }
             
@@ -37,15 +47,14 @@ struct CoinManager {
         }
     }
     
-    func parseJSON(json: Data) {
+    func parseJSON(json: Data) -> CoinResponse? {
         let decoder = JSONDecoder()
         
         do {
             let coinResponse = try decoder.decode(CoinResponse.self, from: json)
-            print(coinResponse.rate!)
-            print(coinResponse.toCurrency!)
+            return coinResponse
         } catch {
-            print(error)
+            return nil
         }
     }
 
@@ -53,7 +62,10 @@ struct CoinManager {
         return currencyArray[row]
     }
     
-    func setCoinPrice(for currency: String) {
-        print(currency)
+    func fetchCoinPrice(for currency: String) {
+        var urlString = baseURL
+        urlString.append("/\(currency)?apikey=\(apiKey)")
+        
+        performRequest(with: urlString)
     }
 }
